@@ -9,8 +9,6 @@ const port = process.env.PORT || 8000;
 const jsonParser = bodyParser.json();
 const urlEncodedParser = bodyParser.urlencoded({ extended: false });
 
-app.use(express.static(path.join(__dirname, 'public')));
-
 // Basic Authorization
 app.use(basicAuthorization({
     authorizer: myBasicAuthorizer,
@@ -123,5 +121,5 @@ app.post('/api/users/delete/:id', (req, res) => {
 
 // Start server
 const server = app.listen(port, function() {
-    console.log('Server started.');
+    console.log('Server listening on port : ' + server.address().port);
 });
