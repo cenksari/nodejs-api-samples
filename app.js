@@ -30,8 +30,8 @@ function myBasicAuthorizer(username, password, cb) {
 
 function getUnauthorizedResponse(req) {
     return req.auth
-        ? ('Credentials ' + req.auth.user + ':' + req.auth.password + ' rejected')
-        : 'No credentials provided'
+        ? ({ code: 401, message: 'Credentials ' + req.auth.user + ':' + req.auth.password + ' rejected' })
+        : ({ code: 401, message: 'No credentials provided' })
 }
 
 // Get query string parameters
@@ -89,7 +89,7 @@ app.get('/api/users/get/:id', (req, res) => {
 // Add user
 app.post('/api/users/add', jsonParser, (req, res) => {
     if (!req.body || req.body.constructor === Object && Object.keys(req.body).length === 0) {
-        return res.sendStatus(400);
+        return res.status(400).json({ code: 400, message: 'Invalid body' });
     }
 
     const user = req.body;
@@ -102,7 +102,7 @@ app.post('/api/users/add', jsonParser, (req, res) => {
 // Edit user
 app.post('/api/users/edit', jsonParser, (req, res) => {
     if (!req.body || req.body.constructor === Object && Object.keys(req.body).length === 0) {
-        return res.sendStatus(400);
+        return res.status(400).json({ code: 400, message: 'Invalid body' });
     }
 
     const id = req.body.id;
