@@ -9,6 +9,9 @@ const port = process.env.PORT || 8000;
 const jsonParser = bodyParser.json();
 const urlEncodedParser = bodyParser.urlencoded({ extended: false });
 
+// Remove X-Powered-By header
+app.disable('x-powered-by');
+
 // Basic Authorization
 app.use(basicAuthorization({
     authorizer: myBasicAuthorizer,
@@ -27,51 +30,64 @@ function myBasicAuthorizer(username, password, cb) {
 
 function getUnauthorizedResponse(req) {
     return req.auth
-    ? ('Credentials ' + req.auth.user + ':' + req.auth.password + ' rejected')
-    : 'No credentials provided'
+        ? ('Credentials ' + req.auth.user + ':' + req.auth.password + ' rejected')
+        : 'No credentials provided'
 }
 
 // Get query string parameters
-app.get('/api/querystring', urlEncodedParser, (req,res) => {
+app.get('/api/querystring', urlEncodedParser, (req, res) => {
     const id = req.query['id'];
     const name = req.query['name'];
 
     res.send(id + ' ' + name);
 });
 
-
 // User database
 let users = [
-    { "id": 1, "name" : "John", "lastName": "PETRUCCI", "email": "jpetrucci@dreamtheater.net" },
-    { "id": 2, "name": "John", "lastName": "MYUNG", "email": "jmyung@dreamtheater.net" },
-    { "id": 3, "name": "James", "lastName": "LABRIE", "email": "jlabrie@dreamtheater.net" },
-    { "id": 3, "name": "Jordan", "lastName": "RUDESS", "email": "jrudess@dreamtheater.net" }
+    {
+        "id": 1,
+        "name": "John",
+        "lastName": "PETRUCCI",
+        "email": "jpetrucci@dreamtheater.net"
+    },
+    {
+        "id": 2,
+        "name": "John",
+        "lastName": "MYUNG",
+        "email": "jmyung@dreamtheater.net"
+    },
+    {
+        "id": 3,
+        "name": "James",
+        "lastName": "LABRIE",
+        "email": "jlabrie@dreamtheater.net"
+    },
+    {
+        "id": 3,
+        "name": "Jordan",
+        "lastName": "RUDESS",
+        "email": "jrudess@dreamtheater.net"
+    }
 ];
 
 // List users
 app.get('/api/users/list', (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
-
-    res.send(users);
+    res.json(users);
 });
 
 // Get user
 app.get('/api/users/get/:id', (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
-
     const id = req.params.id;
 
     const selectedUser = users.filter(function (user) {
         return user.id == id
     });
 
-    res.send(selectedUser);
+    res.json(selectedUser);
 });
 
 // Add user
 app.post('/api/users/add', jsonParser, (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
-
     if (!req.body || req.body.constructor === Object && Object.keys(req.body).length === 0) {
         return res.sendStatus(400);
     }
@@ -80,13 +96,11 @@ app.post('/api/users/add', jsonParser, (req, res) => {
 
     users.push(user);
 
-    res.send(users);
+    res.json(users);
 });
 
 // Edit user
 app.post('/api/users/edit', jsonParser, (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
-
     if (!req.body || req.body.constructor === Object && Object.keys(req.body).length === 0) {
         return res.sendStatus(400);
     }
@@ -101,13 +115,11 @@ app.post('/api/users/edit', jsonParser, (req, res) => {
         }
     }
 
-    res.send(users);
+    res.json(users);
 });
 
 // Delete user
 app.post('/api/users/delete/:id', (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
-
     const id = req.params.id;
 
     const filteredUsers = users.filter(function (user) {
@@ -116,10 +128,10 @@ app.post('/api/users/delete/:id', (req, res) => {
 
     users = filteredUsers;
 
-    res.send(users);
+    res.json(users);
 });
 
 // Start server
-const server = app.listen(port, function() {
+const server = app.listen(port, function () {
     console.log('Server listening on port : ' + server.address().port);
 });

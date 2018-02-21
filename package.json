@@ -20,6 +20,6 @@
 		"url": "https://github.com/cenksari/nodejs-api-playground"
 	},
 	"engines": {
-		"node": "9.4.0"
+		"node": "9.5.0"
 	}
 }
