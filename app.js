@@ -1,4 +1,3 @@
-const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const basicAuthorization = require('express-basic-auth');
@@ -13,125 +12,120 @@ const urlEncodedParser = bodyParser.urlencoded({ extended: false });
 app.disable('x-powered-by');
 
 // Basic Authorization
-app.use(basicAuthorization({
-    authorizer: myBasicAuthorizer,
-    authorizeAsync: true,
-    unauthorizedResponse: getUnauthorizedResponse
-}))
-
 function myBasicAuthorizer(username, password, cb) {
-    if (username.startsWith('username') && password.startsWith('secret')) {
-        return cb(null, true);
-    }
-    else {
-        return cb(null, false);
-    }
+  if (username.startsWith('username') && password.startsWith('secret')) {
+    return cb(null, true);
+  }
+
+  return cb(null, false);
 }
 
 function getUnauthorizedResponse(req) {
-    return req.auth
-        ? ({ code: 401, message: 'Credentials ' + req.auth.user + ':' + req.auth.password + ' rejected' })
-        : ({ code: 401, message: 'No credentials provided' })
+  return req.auth
+    ? ({ code: 401, message: `Credentials ${req.auth.user}:${req.auth.password} rejected` })
+    : ({ code: 401, message: 'No credentials provided' });
 }
+
+app.use(basicAuthorization({
+  authorizer: myBasicAuthorizer,
+  authorizeAsync: true,
+  unauthorizedResponse: getUnauthorizedResponse,
+}));
 
 // Get query string parameters
 app.get('/api/querystring', urlEncodedParser, (req, res) => {
-    const id = req.query['id'];
-    const name = req.query['name'];
+  const { id, name } = req.query;
 
-    res.send(id + ' ' + name);
+  res.send(`${id} ${name}`);
 });
 
 // User database
 let users = [
-    {
-        "id": 1,
-        "name": "John",
-        "lastName": "PETRUCCI",
-        "email": "jpetrucci@dreamtheater.net"
-    },
-    {
-        "id": 2,
-        "name": "John",
-        "lastName": "MYUNG",
-        "email": "jmyung@dreamtheater.net"
-    },
-    {
-        "id": 3,
-        "name": "James",
-        "lastName": "LABRIE",
-        "email": "jlabrie@dreamtheater.net"
-    },
-    {
-        "id": 3,
-        "name": "Jordan",
-        "lastName": "RUDESS",
-        "email": "jrudess@dreamtheater.net"
-    }
+  {
+    id: 1,
+    name: 'John',
+    lastName: 'PETRUCCI',
+    email: 'jpetrucci@dreamtheater.net',
+  },
+  {
+    id: 2,
+    name: 'John',
+    lastName: 'MYUNG',
+    email: 'jmyung@dreamtheater.net',
+  },
+  {
+    id: 3,
+    name: 'James',
+    lastName: 'LABRIE',
+    email: 'jlabrie@dreamtheater.net',
+  },
+  {
+    id: 4,
+    name: 'Jordan',
+    lastName: 'RUDESS',
+    email: 'jrudess@dreamtheater.net',
+  },
 ];
 
 // List users
 app.get('/api/users/list', (req, res) => {
-    res.json(users);
+  res.json(users);
 });
 
 // Get user
 app.get('/api/users/get/:id', (req, res) => {
-    const id = req.params.id;
+  const { id } = req.params;
 
-    const selectedUser = users.filter(function (user) {
-        return user.id == id
-    });
+  const findUser = users.find(user => user.id === parseInt(id, 10));
 
-    res.json(selectedUser);
+  res.json(findUser);
 });
 
 // Add user
 app.post('/api/users/add', jsonParser, (req, res) => {
-    if (!req.body || req.body.constructor === Object && Object.keys(req.body).length === 0) {
-        return res.status(400).json({ code: 400, message: 'Invalid body' });
-    }
+  if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
+    res.status(400).json({ code: 400, message: 'Invalid body' });
+  }
 
-    const user = req.body;
+  const user = req.body;
 
-    users.push(user);
+  users.push(user);
 
-    res.json(users);
+  res.json(users);
 });
 
 // Edit user
 app.post('/api/users/edit', jsonParser, (req, res) => {
-    if (!req.body || req.body.constructor === Object && Object.keys(req.body).length === 0) {
-        return res.status(400).json({ code: 400, message: 'Invalid body' });
-    }
+  if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
+    res.status(400).json({ code: 400, message: 'Invalid body' });
+  }
 
-    const id = req.body.id;
-    const name = req.body.name;
+  const {
+    id,
+    name,
+    lastName,
+    email,
+  } = req.body;
 
-    for (let i in users) {
-        if (users[i].id == id) {
-            users[i].name = name;
-            break;
-        }
-    }
+  const findUser = users.find(user => user.id === parseInt(id, 10));
 
-    res.json(users);
+  findUser.name = name;
+  findUser.lastName = lastName;
+  findUser.email = email;
+
+  res.json(users);
 });
 
 // Delete user
 app.post('/api/users/delete/:id', (req, res) => {
-    const id = req.params.id;
+  const filteredUsers = users.filter(user => user.id !== parseInt(req.params.id, 10));
 
-    const filteredUsers = users.filter(function (user) {
-        return user.id != id
-    });
+  users = filteredUsers;
 
-    users = filteredUsers;
-
-    res.json(users);
+  res.json(users);
 });
 
 // Start server
-const server = app.listen(port, function () {
-    console.log('Server listening on port : ' + server.address().port);
+const server = app.listen(port, () => {
+  console.log(`Server listening on port : ${server.address().port}`);
 });
